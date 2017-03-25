@@ -1,0 +1,17 @@
+{
+  "name": "nightwatch-record",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "eslint ./"
+  },
+  "engines": {
+    "node": ">=5.0.0"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^3.18.0"
+  }
+}
