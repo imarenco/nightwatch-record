@@ -64,6 +64,7 @@ module.exports = {
               }
           })
           .on('close', function() {
+
               if (videoSettings.deleteOnSuccess && !currentTest.results.failed) {
                   require('fs').unlink(file);
               }
@@ -72,8 +73,8 @@ module.exports = {
     },
     stop: function(browser) {
         if (browser.ffmpeg) {
-          browser.ffmpeg.stdin.setEncoding('utf8');
-          browser.ffmpeg.stdin.write('q');
+            browser.ffmpeg.stdin.setEncoding('utf8');
+            browser.ffmpeg.stdin.write('q');
         }
     }
 };

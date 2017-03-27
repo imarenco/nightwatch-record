@@ -1,17 +1,28 @@
 {
   "name": "nightwatch-record",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "Nightwatch.js video screen recording via ffmpeg",
   "main": "index.js",
+  "keywords": [
+    "nightwatch",
+    "video",
+    "screen",
+    "recording",
+    "ffmpeg"
+  ],
+  "author": {
+    "name": "Ignacio Marenco",
+    "url": "https://github.com/imarenco"
+  },
+  "directories": {
+    "test": "tests"
+  },
   "scripts": {
-    "test": "eslint ./"
+    "test": "eslint ./",
+    "postversion": "git push --tags origin HEAD && npm publish"
   },
-  "engines": {
-    "node": ">=5.0.0"
-  },
-  "author": "",
   "license": "MIT",
-  "devDependencies": {
-    "eslint": "^3.18.0"
+  "engines": {
+    "node": ">=6.0.0"
   }
 }
