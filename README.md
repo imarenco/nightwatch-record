@@ -1,6 +1,27 @@
 # Nightwatch.js video screen recording via ffmpeg
 Record videos of [Nightwatch.js](http://nightwatchjs.org/) test sessions, support multiple Operative Systems like MacOs, Windows(cooming soon), Linux.
+
 Uses [ffmpeg](https://www.ffmpeg.org/) to capture a (remote) webdriver desktop screen.
+
+## Install
+
+```sh
+  npm i nightwatch-record --save
+```
+
+## Usage
+
+Add the following `beforeEach`/`afterEach` or `before`/`after` hooks:
+```js
+module.exports = {
+  beforeEach: function (browser, done) {
+    require('nightwatch-record').start(browser);
+  },
+  afterEach: function (browser, done) {
+    require('nightwatch-record').stop(browser);
+  }
+}
+```
 
 
 Enable the video screen recording in your test settings:
