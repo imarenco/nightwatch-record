@@ -2,6 +2,7 @@
 
 const path = require('path');
 const config = require('./config');
+const killSignal = 'SIGKILL';
 
 function mkdirp(dir, mode) {
     const path = require('path');
@@ -59,6 +60,9 @@ module.exports = {
                 ],
           function(error, stdout, stderr) {
               browser.ffmpeg = null;
+              if (error.signal !== killSignal) {
+                  throw error;
+              }
           })
           .on('close', function() {
               if (videoSettings.delete_on_success && !currentTest.results.failed) {
@@ -69,7 +73,8 @@ module.exports = {
     },
     stop: function(browser) {
         if (browser.ffmpeg) {
-            browser.ffmpeg.kill();
+            browser.ffmpeg.stdin.pause();
+            browser.ffmpeg.kill('SIGKILL');
         }
     }
 };
