@@ -64,7 +64,7 @@ module.exports = {
               }
           })
           .on('close', function() {
-              if (videoSettings.delete_on_success && !currentTest.results.failed) {
+              if (videoSettings.deleteOnSuccess && !currentTest.results.failed) {
                   require('fs').unlink(file);
               }
           });
