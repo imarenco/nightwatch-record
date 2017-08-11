@@ -23,6 +23,19 @@ module.exports = {
 }
 ```
 
+If you are using Mocha test runner, you can use;
+```js
+  beforeEach(function(browser, done) {
+    require('nightwatch-record').start(browser);
+    done();
+  });
+
+  afterEach(function (browser, done) {
+    const testPassed = this.currentTest.state !== 'failed'; // Fix videoSettings.deleteOnSuccess: true issue with other test runners
+    require('nightwatch-record').stop(browser, done, testPassed);
+  });
+```
+
 
 Enable the video screen recording in your test settings:
 ```json
@@ -30,7 +43,8 @@ Enable the video screen recording in your test settings:
   "test_settings": {
     "default": {
       "videos": {
-      "filename": "example" (required field),
+        "fileName": "example", // Required field
+        "nameAfterTest": true,
         "format": "mp4",
         "enabled": true,
         "deleteOnSuccess": false,
@@ -44,6 +58,12 @@ Enable the video screen recording in your test settings:
   }
 }
 ```
+
+If your configuration is sending `browser.currentTest.results` as `undefined, `videoSettings.deleteOnSuccess: true` will not work properly. This object is currently only supported in Nightwatch test runner (https://github.com/nightwatchjs/nightwatch/issues/1104).
+                      
+Please note that testPassed argument has to be boolean. True in case test passed, false if test failed. 
+
+You can send same argument with other test runners as well, if you can gain this variable in the afterEach hook.
 
 ## License
 Released under the [MIT license](https://opensource.org/licenses/MIT).
