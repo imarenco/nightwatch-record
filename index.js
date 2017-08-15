@@ -25,7 +25,7 @@ let file;
 let format;
 
 module.exports = {
-    start: function(browser) {
+    start: function(browser, done) {
 
         let def = {};
         videoSettings = browser.globals.test_settings.videos;
@@ -67,17 +67,16 @@ module.exports = {
                     }
                 });
         }
+
+        done();
     },
     stop: function(browser, done, testPassed) {
         const testResults = browser.currentTest.results;
 
         if (browser.ffmpeg) {
-            browser.ffmpeg.stdin.setEncoding('utf8');
-            browser.ffmpeg.stdin.write('q');
-        }
-
-        if (videoSettings.deleteOnSuccess && typeof testResults === 'undefined' && typeof testPassed !== 'boolean') {
-            console.log(`
+            browser.ffmpeg.on('exit', (code) => {
+                if (videoSettings.deleteOnSuccess && typeof testResults === 'undefined' && typeof testPassed !== 'boolean') {
+                    console.log(`
                       Your configuration is sending browser.currentTest.results as undefined, therefore deleteOnSuccess is not working properly.
                       This object is currently only supported in Nightwatch test runner (https://github.com/nightwatchjs/nightwatch/issues/1104). \n
                       If you are using Mocha test runner, you can enable videoSettings.deleteOnSuccess: true with;\n
@@ -88,20 +87,25 @@ module.exports = {
                       
                       Please note that testPassed argument has to be boolean. True in case test passed, false if test failed. 
                       You can send same argument with other test runners as well, if you can gain this variable in the afterEach hook.
-           `);
+                `);
+                }
 
+                const didTestPass = (typeof testResults !== 'undefined' && !testResults.failed) || testPassed;
+
+                if (videoSettings.deleteOnSuccess && didTestPass) {
+                    require('fs').unlink(file);
+                } else if (videoSettings.nameAfterTest) {
+                    const testName = browser.currentTest.name.replace(/[^\w]/gi, '_');
+                    const fileNamedAfterTest = path.resolve(path.join(videoSettings.path || '', testName.concat('.', format)));
+                    require('fs').rename(file, fileNamedAfterTest);
+                }
+
+                done();
+            });
+            browser.ffmpeg.stdin.setEncoding('utf8');
+            browser.ffmpeg.stdin.write('q');
+        } else {
+            done();
         }
-
-        const didTestPass = (typeof testResults !== 'undefined' && !testResults.failed) || testPassed;
-
-        if (videoSettings.deleteOnSuccess && didTestPass) {
-            require('fs').unlink(file);
-        } else if (videoSettings.nameAfterTest) {
-            const testName = browser.currentTest.name.replace(/[^\w]/gi, '_');
-            const fileNamedAfterTest = path.resolve(path.join(videoSettings.path || '', testName.concat('.', format)));
-            require('fs').rename(file, fileNamedAfterTest);
-        }
-
-        done();
     }
 };
