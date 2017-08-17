@@ -6,7 +6,7 @@ const config = require('./config');
 function mkdirp(dir, mode) {
     const path = require('path');
     const fs = require('fs');
-  
+
     dir = path.resolve(dir);
     if (fs.existsSync(dir)) return dir;
     try {
@@ -20,12 +20,15 @@ function mkdirp(dir, mode) {
     }
 }
 
+let videoSettings;
+let file;
+let format;
+
 module.exports = {
-    start: function(browser) {
+    start: function(browser, done) {
 
         let def = {};
-        const videoSettings = browser.globals.test_settings.videos;
-        const currentTest = browser.currentTest;
+        videoSettings = browser.globals.test_settings.videos;
 
         if (videoSettings && videoSettings.enabled) {
 
@@ -37,8 +40,8 @@ module.exports = {
             if (isLin) def = config['lin'];
             if (isMac) def = config['mac'];
 
-            const format = videoSettings.format || 'mp4';
-            const file = path.resolve(path.join(videoSettings.path || '', videoSettings.fileName.concat('.', format)));
+            format = videoSettings.format || 'mp4';
+            file = path.resolve(path.join(videoSettings.path || '', videoSettings.fileName.concat('.', format)));
             mkdirp(path.dirname(file));
 
             browser.ffmpeg = require('child_process').execFile('ffmpeg',
@@ -57,24 +60,52 @@ module.exports = {
                     'error',
                     file
                 ],
-          function(error, stdout, stderr) {
-              browser.ffmpeg = null;
-              if (error) {
-                  throw error;
-              }
-          })
-          .on('close', function() {
-
-              if (videoSettings.deleteOnSuccess && !currentTest.results.failed) {
-                  require('fs').unlink(file);
-              }
-          });
+                function(error, stdout, stderr) {
+                    browser.ffmpeg = null;
+                    if (error) {
+                        throw error;
+                    }
+                });
         }
+
+        done();
     },
-    stop: function(browser) {
+    stop: function(browser, done, testPassed) {
+        const testResults = browser.currentTest.results;
+
         if (browser.ffmpeg) {
+            browser.ffmpeg.on('exit', (code) => {
+                if (videoSettings.deleteOnSuccess && typeof testResults === 'undefined' && typeof testPassed !== 'boolean') {
+                    console.log(`
+                      Your configuration is sending browser.currentTest.results as undefined, therefore deleteOnSuccess is not working properly.
+                      This object is currently only supported in Nightwatch test runner (https://github.com/nightwatchjs/nightwatch/issues/1104). \n
+                      If you are using Mocha test runner, you can enable videoSettings.deleteOnSuccess: true with;\n
+                      afterEach(function (browser, done) {
+                        const testResults = this.currentTest.state !== 'failed';
+                        require('nightwatch-record').stop(browser, done, testResults);
+                      });
+                      
+                      Please note that testPassed argument has to be boolean. True in case test passed, false if test failed. 
+                      You can send same argument with other test runners as well, if you can gain this variable in the afterEach hook.
+                `);
+                }
+
+                const didTestPass = (typeof testResults !== 'undefined' && !testResults.failed) || testPassed;
+
+                if (videoSettings.deleteOnSuccess && didTestPass) {
+                    require('fs').unlink(file);
+                } else if (videoSettings.nameAfterTest) {
+                    const testName = browser.currentTest.name.replace(/[^\w]/gi, '_');
+                    const fileNamedAfterTest = path.resolve(path.join(videoSettings.path || '', testName.concat('.', format)));
+                    require('fs').rename(file, fileNamedAfterTest);
+                }
+
+                done();
+            });
             browser.ffmpeg.stdin.setEncoding('utf8');
             browser.ffmpeg.stdin.write('q');
+        } else {
+            done();
         }
     }
 };
