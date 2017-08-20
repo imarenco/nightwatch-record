@@ -93,11 +93,15 @@ module.exports = {
                 const didTestPass = (typeof testResults !== 'undefined' && !testResults.failed) || testPassed;
 
                 if (videoSettings.deleteOnSuccess && didTestPass) {
-                    require('fs').unlink(file);
+                    require('fs').unlink(file, function(err) {
+                        if (err) throw err;
+                    });
                 } else if (videoSettings.nameAfterTest) {
                     const testName = browser.currentTest.name.replace(/[^\w]/gi, '_');
                     const fileNamedAfterTest = path.resolve(path.join(videoSettings.path || '', testName.concat('.', format)));
-                    require('fs').rename(file, fileNamedAfterTest);
+                    require('fs').rename(file, fileNamedAfterTest, function(err) {
+                        if (err) throw err;
+                    });
                 }
 
                 done();
