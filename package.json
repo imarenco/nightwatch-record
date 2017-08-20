@@ -1,6 +1,6 @@
 {
   "name": "nightwatch-record",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Nightwatch.js video screen recording via ffmpeg",
   "main": "index.js",
   "keywords": [
