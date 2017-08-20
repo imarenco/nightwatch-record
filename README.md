@@ -15,10 +15,10 @@ Add the following `beforeEach`/`afterEach` or `before`/`after` hooks:
 ```js
 module.exports = {
   beforeEach: function (browser, done) {
-    require('nightwatch-record').start(browser);
+    require('nightwatch-record').start(browser, done);
   },
   afterEach: function (browser, done) {
-    require('nightwatch-record').stop(browser);
+    require('nightwatch-record').stop(browser, done);
   }
 }
 ```
